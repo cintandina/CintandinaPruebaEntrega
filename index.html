@@ -100,6 +100,15 @@
       margin: 0;
     }
   </style>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7EBZLPDBE9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-7EBZLPDBE9');
+</script>
+
 </head>
 <body>
   <div class="formulario">
@@ -155,6 +164,17 @@
   const fechaHoraInput = document.getElementById('fechaHora');
   let stream;
 
+  // ✅ Evento: visita al formulario
+  window.addEventListener('load', () => {
+    gtag('event', 'visita_formulario_entrega', {
+      event_category: 'interacción',
+      event_label: 'formulario_abierto'
+    });
+  });
+
+  let firmaRegistrada = false;
+
+
   function iniciarCamara() {
     navigator.mediaDevices.getUserMedia({
       video: { facingMode: { exact: "environment" } }
@@ -172,6 +192,11 @@
   iniciarCamara();
 
   capturarBtn.addEventListener('click', () => {
+    gtag('event', 'foto_capturada', {
+    event_category: 'formulario',
+    event_label: 'captura_foto'
+  });
+
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL('image/png');
     fotoInput.value = dataUrl;
@@ -200,11 +225,22 @@
   }
 
   function detenerDibujo() {
-    if (dibujando) {
-      dibujando = false;
-      firmaInput.value = canvasFirma.toDataURL('image/png');
+
+  if (dibujando) {
+    dibujando = false;
+    firmaInput.value = canvasFirma.toDataURL('image/png');
+
+    // ✅ Evento solo 1 vez
+    if (!firmaRegistrada) {
+      gtag('event', 'firma_realizada', {
+        event_category: 'formulario',
+        event_label: 'firma_completada'
+      });
+      firmaRegistrada = true;
     }
   }
+}
+
 
   canvasFirma.addEventListener('mousedown', e => empezarDibujo(e.offsetX, e.offsetY));
   canvasFirma.addEventListener('mousemove', e => dibujarLinea(e.offsetX, e.offsetY));
@@ -231,6 +267,11 @@
 
   // ✅ SUBMIT ÚNICO
   form.addEventListener('submit', e => {
+    gtag('event', 'clic_enviar_formulario', {
+    event_category: 'interacción',
+    event_label: 'boton_enviar'
+  });
+
     e.preventDefault();
 
     // Validación
@@ -255,6 +296,11 @@
     .then(res => res.json())
     .then(data => {
       if (data.success) {
+        gtag('event', 'formulario_entrega_enviado', {
+      event_category: 'conversion',
+      event_label: 'entrega_confirmada'
+    });
+
         const a = document.createElement('a');
         a.href = data.pdfUrl;
         a.download = 'Prueba_de_Entrega.pdf';
@@ -264,12 +310,22 @@
         alert("Formulario enviado correctamente.");
         location.reload();
       } else {
+        gtag('event', 'formulario_error', {
+        event_category: 'error',
+        event_label: 'fallo_envio'
+      });
+
         alert("Error al enviar");
         btnEnviar.disabled = false;
         btnEnviar.textContent = 'Enviar';
       }
     })
     .catch(err => {
+      gtag('event', 'formulario_error', {
+      event_category: 'error',
+      event_label: 'fallo_envio'
+    });
+
       console.error(err);
       alert("Error al enviar");
       btnEnviar.disabled = false;
@@ -280,6 +336,7 @@
 
 </body>
 </html>
+
 
 
 
